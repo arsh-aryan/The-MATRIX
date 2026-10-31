@@ -1,0 +1,19 @@
+name: Driftation
+on: [pull_request]
+
+# Runs Driftation on every PR in this repo and shows the report on the
+# workflow run's Summary page. It never posts comments anywhere.
+jobs:
+  docs-drift:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history, needed for "git diff base...head"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      # GitHub's servers have no Ollama, so Gemma is skipped here (--no-llm).
+      - run: python -m driftation --base origin/${{ github.base_ref }} --head HEAD --no-llm --output report.md
+      - run: cat report.md >> "$GITHUB_STEP_SUMMARY"

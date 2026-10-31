@@ -73,3 +73,11 @@ def test_no_newline_marker_is_ignored():
 """
     result = parse_diff(diff)
     assert result["app.py"] == {"removed": ["DEBUG = False"], "added": ["DEBUG = True"]}
+
+
+def test_line_numbers():
+    from driftation.diff_parser import parse_diff_with_lines
+
+    result = parse_diff_with_lines(SAMPLE)
+    assert result["app.py"]["removed"] == [(1, "TIMEOUT = 30")]
+    assert result["app.py"]["added"] == [(1, "TIMEOUT = 60")]
