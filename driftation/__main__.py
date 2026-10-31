@@ -1,5 +1,6 @@
 """Command line entry point: python -m driftation --base main"""
 import argparse
+import os
 import sys
 
 from .changes import find_changes
@@ -8,7 +9,8 @@ from .diff_parser import parse_diff_with_lines
 from .docs import load_sentences
 from .drift import find_drift
 from .gemma import review
-from .git_input import Folder, GitTree, commit_for, folder_diff, git_diff, merge_base
+from .git_input import (Folder, GitTree, commit_for, folder_diff, git_diff, is_git_repo, merge_base,
+                        ref_exists)
 from .json_report import make_json
 from .report import make_report
 
@@ -27,6 +29,12 @@ def main(argv=None):
     parser.add_argument("--output", help="write the Markdown report to this file")
     parser.add_argument("--json", help="also write a JSON report to this file")
     args = parser.parse_args(argv)
+
+    # Stop early with one clear line instead of a long Python error
+    problem = _check_input(args)
+    if problem:
+        print(f"driftation: error: {problem}", file=sys.stderr)
+        return 2
 
     # Step 0: input
     if args.old:
@@ -81,6 +89,22 @@ def main(argv=None):
             f.write(make_json(findings, changes, meta) + "\n")
         _log(f"JSON report written to {args.json}")
     return 0
+
+
+def _check_input(args):
+    """Return a short message if the folders, files or git refs given don't exist, else None."""
+    if not os.path.isdir(args.repo):
+        return f"folder not found: {args.repo}"
+    if args.old:
+        return None if os.path.isdir(args.old) else f"folder not found: {args.old}"
+    if args.diff:
+        return None if os.path.isfile(args.diff) else f"diff file not found: {args.diff}"
+    if not is_git_repo(args.repo):
+        return f"{args.repo} is not a git repository (use --diff or --old without git)"
+    for option, ref in (("--base", args.base), ("--head", args.head)):
+        if not ref_exists(args.repo, ref):
+            return f"branch or commit '{ref}' not found. Check {option}."
+    return None
 
 
 def _changed_line(diff, change):
