@@ -64,7 +64,11 @@ and shows the report on the workflow run's Summary page. GitHub's servers have n
 so this runs with `--no-llm`; run it locally to get Gemma's verdicts.
 
 ## Example
-See the `examples/` folder for a sample input and the real report it produced.
+[`examples/basic`](examples/basic) has a sample project, a PR diff, and the real report
+Driftation produced with gemma4:e4b (4 of 4 outdated sentences found):
+```
+python -m driftation --repo examples/basic/project --diff examples/basic/pr.diff
+```
 
 ## Running tests
 ```

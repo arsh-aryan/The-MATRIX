@@ -1,0 +1,33 @@
+diff --git a/cli.py b/cli.py
+index 8e9c296..728c369 100644
+--- a/cli.py
++++ b/cli.py
+@@ -1,25 +1,19 @@
+ """weather-cli: fetch a weather forecast from the command line."""
+ import argparse
+ 
+-DEFAULT_TIMEOUT = 30
++DEFAULT_TIMEOUT = 60
+ DEFAULT_UNITS = "metric"
+ 
+ 
+-def fetch_forecast(city, days=3, units=DEFAULT_UNITS):
++def fetch_forecast(city, days=7, units=DEFAULT_UNITS):
+     """Return the forecast for `city` for the next `days` days."""
+     return {"city": city, "days": days, "units": units}
+ 
+ 
+-def export_csv(forecast, path):
+-    """Save a forecast as a CSV file."""
+-    with open(path, "w") as f:
+-        f.write(",".join(str(v) for v in forecast.values()))
+-
+-
+ def main():
+     parser = argparse.ArgumentParser(prog="weather")
+     parser.add_argument("city")
+-    parser.add_argument("--max-retries", type=int, default=3)
++    parser.add_argument("--retries", type=int, default=3)
+     parser.add_argument("--timeout", type=int, default=DEFAULT_TIMEOUT)
+     parser.add_argument("--units", default=DEFAULT_UNITS)
+     args = parser.parse_args()
