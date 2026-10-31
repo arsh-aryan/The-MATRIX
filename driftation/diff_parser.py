@@ -1,32 +1,54 @@
 import re
 
 # Matches a hunk header like "@@ -10,3 +10,4 @@" (a missing count means 1)
-HUNK_RE = re.compile(r"^@@ -\d+(?:,(\d+))? \+\d+(?:,(\d+))? @@")
+HUNK_RE = re.compile(r"^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@")
 
 
 def parse_diff(diff_text):
     """Return {filename: {"removed": [...], "added": [...]}} from a unified git diff."""
+    detailed = parse_diff_with_lines(diff_text)
+    return {
+        path: {
+            "removed": [text for _, text in lines["removed"]],
+            "added": [text for _, text in lines["added"]],
+        }
+        for path, lines in detailed.items()
+    }
+
+
+def parse_diff_with_lines(diff_text):
+    """Like parse_diff, but each line is a (line_number, text) pair.
+
+    Removed lines use the line number in the old file, added lines the number in the new file.
+    """
     changes = {}
     current = None        # changes dict for the file being read
     named_by_git = False  # True if "diff --git" already gave us the file name
     old_path = None       # name from the "--- " line
     old_left = 0          # old-side lines still to read in this hunk
     new_left = 0          # new-side lines still to read in this hunk
+    old_no = 0            # current line number in the old file
+    new_no = 0            # current line number in the new file
 
     for line in diff_text.splitlines():
         # Inside a hunk, the "@@" counts tell us how many lines belong to it,
         # so a removed line like "-- note" (shown as "--- note") is not a file header.
         if old_left > 0 or new_left > 0:
+            assert current is not None  # a hunk only starts after a file name is known
             if line.startswith("-"):
-                current["removed"].append(line[1:])
+                current["removed"].append((old_no, line[1:]))
+                old_no += 1
                 old_left -= 1
             elif line.startswith("+"):
-                current["added"].append(line[1:])
+                current["added"].append((new_no, line[1:]))
+                new_no += 1
                 new_left -= 1
             elif line.startswith("\\"):
                 pass  # "\ No newline at end of file"
             else:
-                old_left -= 1  # unchanged line counts on both sides
+                old_no += 1  # unchanged line counts on both sides
+                new_no += 1
+                old_left -= 1
                 new_left -= 1
             continue
 
@@ -45,8 +67,10 @@ def parse_diff(diff_text):
         elif line.startswith("@@") and current is not None:
             match = HUNK_RE.match(line)
             if match:
-                old_left = int(match.group(1) or 1)
-                new_left = int(match.group(2) or 1)
+                old_no = int(match.group(1))
+                old_left = int(match.group(2) or 1)
+                new_no = int(match.group(3))
+                new_left = int(match.group(4) or 1)
     return changes
 
 
