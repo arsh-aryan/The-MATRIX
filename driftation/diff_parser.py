@@ -17,6 +17,7 @@ def parse_diff(diff_text):
         # Inside a hunk, the "@@" counts tell us how many lines belong to it,
         # so a removed line like "-- note" (shown as "--- note") is not a file header.
         if old_left > 0 or new_left > 0:
+            assert current is not None  # a hunk only starts after a file name is known
             if line.startswith("-"):
                 current["removed"].append(line[1:])
                 old_left -= 1
