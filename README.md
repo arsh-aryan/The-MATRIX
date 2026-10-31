@@ -3,9 +3,12 @@
 Driftation finds documentation that became outdated because of code changes
 in a pull request, and points to the exact code change responsible.
 
-On a real cookiecutter commit that renamed `--config` to `--config-file`, it flagged exactly the
-2 doc lines a maintainer fixed 3 hours later, and Gemma's suggested fixes matched the maintainer's
-word for word ([`examples/real-cookiecutter`](examples/real-cookiecutter)).
+**Tested on real history:** across 9 verified cases of documentation drift in 9 open-source
+Python projects (cookiecutter, httpie, flake8, isort, coverage.py, bandit, yapf, pipx, autopep8),
+Driftation flagged the outdated docs in **7 of 9**, run on the code change *before* a human fixed
+the docs ([`benchmark/`](benchmark)). On cookiecutter it flagged exactly the 2 lines a maintainer
+fixed 3 hours later, and Gemma's fixes matched the maintainer's word for word
+([`examples/real-cookiecutter`](examples/real-cookiecutter)).
 
 ## Quick start
 You need Python 3.11+ and git. Gemma is optional but recommended.

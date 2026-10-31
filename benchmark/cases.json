@@ -1,0 +1,150 @@
+[
+  {
+    "project": "httpie/cli",
+    "token": "--response-as",
+    "code_commit": "4f1c9441c5b98bb36b542023555457ccfe479448",
+    "doc_commit": "a15fd6f966a72c0d40e8a65f0d91779d6963a516",
+    "hours_apart": 174.1,
+    "docs": [
+      "docs/README.md"
+    ],
+    "fixed_lines": [
+      "The `--response-as=value` option allows you to override the response `Content-Type` sent by the server.",
+      "$ http --response-as=application/xml pie.dev/get",
+      "$ http --response-as='charset=big5' pie.dev/get",
+      "$ http --response-as='text/plain; charset=big5' pie.dev/get"
+    ],
+    "code_message": "Fix encoding error with non-prettified encoded responses (#1168)",
+    "doc_message": "Add `--response=mime` and `--response=charset` docs (#1179)"
+  },
+  {
+    "project": "PyCQA/flake8",
+    "token": "--max-complexity",
+    "code_commit": "a593dd01a462eae39ec5786f13ff2c97622ac581",
+    "doc_commit": "f5825f72908a72fec96133c067b0e034c1b41ac9",
+    "hours_apart": 61.3,
+    "docs": [
+      "README.rst"
+    ],
+    "fixed_lines": [
+      "flake8 offers an extra option: --max-complexity, which will emit a warning if",
+      "$ flake8 --max-complexity 12 coolproject"
+    ],
+    "code_message": "Install mccabe as a dependency",
+    "doc_message": "Re-use the README to avoid duplication with the documentation"
+  },
+  {
+    "project": "PyCQA/isort",
+    "token": "file_contents",
+    "code_commit": "28bbd0e703e1b6124cb2866082fa9fcfb5b9d921",
+    "doc_commit": "586109d4aa06ce3045766467bedb1f6fb4bc189d",
+    "hours_apart": 2.3,
+    "docs": [
+      "README.md"
+    ],
+    "fixed_lines": [
+      "new_contents = SortImports(file_contents=old_contents).output"
+    ],
+    "code_message": "Make sure outer scope variables aren't redefined",
+    "doc_message": "Minor README fixes"
+  },
+  {
+    "project": "pypa/pipx",
+    "token": "--spec",
+    "code_commit": "fa570d50049e0f60789ad631d0c7d505b171d82b",
+    "doc_commit": "565321670dc9e3998585f593e5e4b47f34d4e471",
+    "hours_apart": 67.2,
+    "docs": [
+      "docs/docs.md"
+    ],
+    "fixed_lines": [
+      "usage: pipx install [-h] [--spec SPEC] [--include-deps] [--verbose] [--force]",
+      "pipx install --spec VCS_URL PACKAGE",
+      "pipx install --spec ZIP_FILE PACKAGE",
+      "pipx install --spec TAR_GZ_FILE PACKAGE",
+      "The argument to `--spec` is passed directly to `pip install`.",
+      "--spec SPEC           The package name or specific installation source"
+    ],
+    "code_message": "inject, install accept package spec without --spec option (#302)",
+    "doc_message": "generate docs"
+  },
+  {
+    "project": "cookiecutter/cookiecutter",
+    "token": "--config",
+    "code_commit": "64433b162fee34660389f5c5220f9a24e00a0ff4",
+    "doc_commit": "d4cfba25552deb44c218f5d63c1608678d9d8f57",
+    "hours_apart": 2.8,
+    "docs": [
+      "docs/advanced_usage.rst"
+    ],
+    "fixed_lines": [
+      "From version 1.3.0 you can also specify a config file on the command line via ``--config``::",
+      "$ cookiecutter --config /home/audreyr/my-custom-config.yaml cookiecutter-pypackage"
+    ],
+    "code_message": "Add default config support to cli and change config option name",
+    "doc_message": "Update cli option name to --config-file in docs"
+  },
+  {
+    "project": "nedbat/coveragepy",
+    "token": "ignore_errors",
+    "code_commit": "5205da079a8e099f9f5c6895b2cd634fc512fc55",
+    "doc_commit": "0101eff78ab68dcf8a8c20e06c24b68d8e4c45e6",
+    "hours_apart": 29.8,
+    "docs": [
+      "doc/config.rst"
+    ],
+    "fixed_lines": [
+      "``ignore_errors`` (boolean, default False): ignore errors when reading the data"
+    ],
+    "code_message": "Combining now issues warnings on unreadable files, unconditionally",
+    "doc_message": "Remove the obsoleted doc for the [combine] configuration"
+  },
+  {
+    "project": "PyCQA/bandit",
+    "token": "--context",
+    "code_commit": "3c86f69bf52be3433b04dff3be00618653b1c0c9",
+    "doc_commit": "a245eaa38c257fcaface4dbb14a66591c33d83c5",
+    "hours_apart": 0.0,
+    "docs": [
+      "README.md"
+    ],
+    "fixed_lines": [
+      "-C CONTEXT_LINES, --context CONTEXT_LINES"
+    ],
+    "code_message": "Updating command line switches",
+    "doc_message": "Updated README file"
+  },
+  {
+    "project": "google/yapf",
+    "token": "--noverify",
+    "code_commit": "7a01d0012fcb25bf8d6013b8bb3a3d1dc70d35ee",
+    "doc_commit": "a1cb4921f3525e8020064591d926bd192a681e13",
+    "hours_apart": 10.8,
+    "docs": [
+      "README.rst"
+    ],
+    "fixed_lines": [
+      "usage: yapf [-h] [--style STYLE] [--noverify] [-d | -i] [-l START-END | -r] ...",
+      "--noverify            do not verify refomatted code for syntax errors",
+      "It's possible to disable verification with the ``--noverify`` flag."
+    ],
+    "code_message": "Disable post-reformatting verification by default.",
+    "doc_message": "Remove references to \"verifying\" code."
+  },
+  {
+    "project": "hhatto/autopep8",
+    "token": "has_key",
+    "code_commit": "a7e7c9a97469b9bd999540240b17de18e7137d27",
+    "doc_commit": "2b1ead2e362ea058662b7f71e18fed38b07d8e23",
+    "hours_apart": 0.2,
+    "docs": [
+      "README.rst"
+    ],
+    "fixed_lines": [
+      "W601 - Use \"in\" rather than \"has_key()\".",
+      ">>> autopep8.fix_code('x.has_key(y)\\n',"
+    ],
+    "code_message": "remove global fixes",
+    "doc_message": "update readme"
+  }
+]
