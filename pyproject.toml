@@ -10,7 +10,7 @@ readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "The MATRIX (Arsh Aryan, Harshit Sharma)" }]
 requires-python = ">=3.11"
-dependencies = ["requests", "networkx"]
+dependencies = ["requests", "networkx", "pyyaml"]
 
 [project.scripts]
 # Lets users run `driftation --base main` from any folder after `pip install`

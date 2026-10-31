@@ -10,6 +10,8 @@ import warnings
 
 import networkx as nx
 
+from .config_files import extract_config, is_config
+
 FLAG_FUNCS = {"add_argument", "option", "argument"}  # argparse and click
 
 
@@ -48,7 +50,12 @@ def extract(source):
         if isinstance(node, ast.ClassDef):
             symbols[("class", node.name)] = {"value": None, "line": node.lineno}
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            symbols[("function", node.name)] = {"value": None, "line": node.lineno}
+            symbols[("function", node.name)] = {
+                "value": None,
+                "line": node.lineno,
+                "body": _body_fingerprint(node),  # used to spot behaviour changes
+                "code": (ast.get_source_segment(source, node) or "")[:1500],
+            }
             for arg, default in _params(node):
                 symbols[("param", f"{node.name}.{arg}")] = {"value": _text(default), "line": node.lineno}
                 links.append(("function", node.name, "defines", f"param:{node.name}.{arg}"))
@@ -70,13 +77,16 @@ def extract(source):
 
 
 def build_graph(tree):
-    """Build the graph for every .py file in a GitTree or Folder."""
+    """Build the graph for every .py file and config file in a GitTree or Folder."""
     graph = nx.DiGraph()
     all_links = []
     for path in tree.list_files():
-        if not path.endswith(".py"):
+        if path.endswith(".py"):
+            symbols, links = extract(tree.read(path) or "")
+        elif is_config(path):
+            symbols, links = extract_config(path, tree.read(path) or ""), []
+        else:
             continue
-        symbols, links = extract(tree.read(path) or "")
         for (kind, name), info in symbols.items():
             graph.add_node(node_id(kind, name), kind=kind, name=name, file=path, **info)
         all_links += links
@@ -103,6 +113,14 @@ def walk(graph, start, max_steps=2):
                     next_frontier.append(neighbour)
         frontier = next_frontier
     return paths
+
+
+def _body_fingerprint(func):
+    """A text that changes only when the function's code changes (its docstring is ignored)."""
+    body = func.body
+    if body and isinstance(body[0], ast.Expr) and isinstance(getattr(body[0], "value", None), ast.Constant):
+        body = body[1:]
+    return "\n".join(ast.dump(stmt) for stmt in body)
 
 
 def _assigned(stmt):

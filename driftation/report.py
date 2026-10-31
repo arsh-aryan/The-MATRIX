@@ -63,12 +63,18 @@ def _finding(number, f):
 
 
 def _code(name, value):
-    return f"`{name} = {value}`" if value is not None else f"`{name}`"
+    if value is None:
+        return f"`{name}`"
+    if value.startswith(name + "("):
+        return f"`{value}`"  # a signature, e.g. create_note(title)
+    return f"`{name} = {value}`"
 
 
 def _after(c):
     if c["type"] == "removed":
         return "*(removed)*"
+    if c["type"] == "behavior_changed":
+        return f"`{c['old_name']}` *(code changed)*"
     return _code(c["new_name"] or c["old_name"], c["new_value"])
 
 

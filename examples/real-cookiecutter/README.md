@@ -18,7 +18,7 @@ a popular open-source Python project (BSD-3-Clause). Public data only; nothing w
 ## Result
 Driftation, run on the code change **before** the doc fix existed:
 - flagged exactly the **2 lines the maintainer later fixed** (lines 73 and 75), and nothing else,
-  out of 2,333 doc sentences and 550 code items;
+  out of 2,763 doc sentences (docs and docstrings) and 596 code items and settings;
 - Gemma judged both "outdated", and its suggested fixes match the maintainer's fix word for word.
 
 | Line | Maintainer's fix (`d4cfba2`) | Gemma's suggested fix |

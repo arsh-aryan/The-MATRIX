@@ -1,0 +1,212 @@
+{
+  "tool": "driftation",
+  "version": "0.1.0",
+  "model": "gemma4:e4b",
+  "base": "main",
+  "head": "HEAD",
+  "summary": {
+    "code_changes": 5,
+    "findings": 6,
+    "dismissed_by_gemma": 0
+  },
+  "code_changes": [
+    {
+      "id": "C1",
+      "type": "value_changed",
+      "kind": "constant",
+      "old": {
+        "name": "DEFAULT_PAGE_SIZE",
+        "value": "20",
+        "file": "app.py",
+        "line": 3
+      },
+      "new": {
+        "name": "DEFAULT_PAGE_SIZE",
+        "value": "50",
+        "file": "app.py",
+        "line": 3
+      },
+      "commit": null
+    },
+    {
+      "id": "C2",
+      "type": "signature_changed",
+      "kind": "function",
+      "old": {
+        "name": "create_note",
+        "value": "create_note(title)",
+        "file": "app.py",
+        "line": 6
+      },
+      "new": {
+        "name": "create_note",
+        "value": "create_note(title, owner)",
+        "file": "app.py",
+        "line": 6
+      },
+      "commit": null
+    },
+    {
+      "id": "C3",
+      "type": "behavior_changed",
+      "kind": "function",
+      "old": {
+        "name": "list_notes",
+        "value": null,
+        "file": "app.py",
+        "line": 11
+      },
+      "new": {
+        "name": "list_notes",
+        "value": null,
+        "file": "app.py",
+        "line": 11
+      },
+      "commit": null
+    },
+    {
+      "id": "C4",
+      "type": "value_changed",
+      "kind": "setting",
+      "old": {
+        "name": "server.port",
+        "value": "8080",
+        "file": "config.yaml",
+        "line": 2
+      },
+      "new": {
+        "name": "server.port",
+        "value": "9000",
+        "file": "config.yaml",
+        "line": 2
+      },
+      "commit": null
+    },
+    {
+      "id": "C5",
+      "type": "renamed",
+      "kind": "setting",
+      "old": {
+        "name": "storage.path",
+        "value": "./notes.db",
+        "file": "config.yaml",
+        "line": 5
+      },
+      "new": {
+        "name": "storage.db_path",
+        "value": "./notes.db",
+        "file": "config.yaml",
+        "line": 5
+      },
+      "commit": null
+    }
+  ],
+  "findings": [
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 9,
+        "sentence": "| `server.port` | 8080 | Port the server listens on |"
+      },
+      "cause": "C4",
+      "matched": "server.port",
+      "link": "direct",
+      "evidence": [
+        "setting:server.port",
+        "doc:README.md:9"
+      ],
+      "verdict": "outdated",
+      "explanation": "The documented port value (8080) does not match the new value set in the configuration (9000).",
+      "suggested_fix": "|`server.port` | 9000 | Port the server listens on |"
+    },
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 11,
+        "sentence": "| `storage.path` | ./notes.db | Where notes are stored |"
+      },
+      "cause": "C5",
+      "matched": "storage.path",
+      "link": "direct",
+      "evidence": [
+        "setting:storage.path",
+        "doc:README.md:11"
+      ],
+      "verdict": "outdated",
+      "explanation": "The configuration key 'storage.path' was renamed to 'storage.db_path' in the code.",
+      "suggested_fix": "|\"storage.db_path\"| ./notes.db | Where notes are stored |"
+    },
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 14,
+        "sentence": "Call create_note(title) to add a note."
+      },
+      "cause": "C2",
+      "matched": "create_note",
+      "link": "direct",
+      "evidence": [
+        "function:create_note",
+        "doc:README.md:14"
+      ],
+      "verdict": "outdated",
+      "explanation": "The function now requires two arguments (title and owner) instead of just one.",
+      "suggested_fix": "Call create_note(title, owner) to add a note."
+    },
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 15,
+        "sentence": "list_notes(notes) returns notes in the order they were created, oldest first."
+      },
+      "cause": "C3",
+      "matched": "list_notes",
+      "link": "direct",
+      "evidence": [
+        "function:list_notes",
+        "doc:README.md:15"
+      ],
+      "verdict": "outdated",
+      "explanation": "The new code sorts notes by creation date in reverse order (newest first), but the documentation claims 'oldest first'.",
+      "suggested_fix": "list_notes(notes) returns notes in the order they were created, newest first."
+    },
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 16,
+        "sentence": "`search(notes, query)` returns up to 20 notes per page."
+      },
+      "cause": "C1",
+      "matched": "search",
+      "link": "indirect",
+      "evidence": [
+        "constant:DEFAULT_PAGE_SIZE",
+        "function:search",
+        "doc:README.md:16"
+      ],
+      "verdict": "outdated",
+      "explanation": "The documentation states 20, but the constant DEFAULT_PAGE_SIZE was updated from 20 to 50.",
+      "suggested_fix": "\"search(notes, query)\" returns up to 50 notes per page."
+    },
+    {
+      "doc": {
+        "file": "app.py",
+        "line": 19,
+        "sentence": "Returns at most `page_size` notes (default 20)."
+      },
+      "cause": "C1",
+      "matched": "page_size",
+      "link": "indirect",
+      "evidence": [
+        "constant:DEFAULT_PAGE_SIZE",
+        "function:search",
+        "param:search.page_size",
+        "doc:app.py:19"
+      ],
+      "verdict": "outdated",
+      "explanation": "The default value in the documentation (20) does not match the constant value in the code (50).",
+      "suggested_fix": "Returns at most `page_size` notes (default 50)."
+    }
+  ],
+  "dismissed": []
+}

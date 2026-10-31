@@ -1,6 +1,8 @@
 """Step 2: read documentation files and find sentences that mention code names."""
+import ast
 import os
 import re
+import warnings
 
 DOC_EXTENSIONS = (".md", ".rst", ".txt")
 # Split after . ! ? when the next sentence starts with a capital, backtick, dash or digit
@@ -25,12 +27,35 @@ def sentences(text):
 
 
 def load_sentences(tree):
-    """All doc sentences in the project as (path, line, sentence)."""
+    """All doc sentences in the project as (path, line, sentence), docstrings included."""
     found = []
     for path in doc_files(tree):
         for number, sentence in sentences(tree.read(path) or ""):
             found.append((path, number, sentence))
+    for path in tree.list_files():
+        if path.endswith(".py"):
+            for number, sentence in docstring_sentences(tree.read(path) or ""):
+                found.append((path, number, sentence))
     return found
+
+
+def docstring_sentences(source):
+    """Yield (line_number, sentence) for the text inside a Python file's docstrings."""
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            tree = ast.parse(source)
+    except (SyntaxError, ValueError):
+        return
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        body = node.body
+        if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) \
+                and isinstance(body[0].value.value, str):
+            start = body[0].lineno  # the line with the opening quotes
+            for offset, sentence in sentences(body[0].value.value):
+                yield start + offset - 1, sentence
 
 
 def name_variants(name):
@@ -52,18 +77,24 @@ def mentions(sentence, name):
     Names with several parts ("max_retries", "--max-retries", "max retries") match anywhere,
     in any case. Names that look like code on their own (TIMEOUT, HttpClient) match exactly.
     A plain single word like "config" or "days" is also an everyday English word, so it
-    only counts when the doc writes it as code: `config`, ``config``, config(...) or
-    config=... This keeps false alarms down.
+    only counts when the doc writes it as code: `config`, ``config``, config(...),
+    config=... or "config: ..." at the start of a line (a YAML snippet). This keeps
+    false alarms down.
+    Dotted config keys like "server.port" count as several parts.
     """
     for variant in sorted(name_variants(name), key=len, reverse=True):
         word = re.escape(variant)
         plain = r"(?<![\w-])" + word + r"(?![\w-])"
-        if re.search(r"[\s_\-]", variant):
+        if re.search(r"[\s_\-.]", variant):
             pattern, flags = plain, re.IGNORECASE
         elif any(c.isupper() for c in variant[1:]):
             pattern, flags = plain, 0
         else:
-            pattern, flags = r"`{1,2}" + word + r"`{1,2}|(?<![\w-])" + word + r"(?=[(=])", 0
+            pattern, flags = (
+                r"`{1,2}" + word + r"`{1,2}"        # `config` or ``config``
+                + r"|(?<![\w-])" + word + r"(?=[(=])"  # config( or config=
+                + r"|^\s*-?\s*" + word + r":"          # "config:" at the start, as in YAML
+            ), 0
         if re.search(pattern, sentence, flags):
             return variant
     return None
@@ -76,5 +107,5 @@ def contains_value(sentence, value):
     text = value.strip("'\"")
     if not text:
         return False
-    flags = re.IGNORECASE if text in ("True", "False", "None") else 0
+    flags = re.IGNORECASE if text.lower() in ("true", "false", "none", "null") else 0
     return re.search(r"(?<![\w.])" + re.escape(text) + r"(?!\w|\.\d)", sentence, flags) is not None

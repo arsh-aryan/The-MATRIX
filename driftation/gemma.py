@@ -16,7 +16,7 @@ Documentation sentence ({doc}, line {line}):
   "{sentence}"
 
 How they are linked: {evidence}
-
+{code}
 Is this sentence now outdated because of the code change?
 Answer with JSON only, in this exact shape:
 {{"verdict": "outdated" | "still_correct" | "uncertain",
@@ -46,6 +46,18 @@ def build_prompt(finding):
         line=finding["line"],
         sentence=finding["sentence"],
         evidence=" -> ".join(finding["evidence"]),
+        code=_code_section(change),
+    )
+
+
+def _code_section(change):
+    """For behaviour changes, show Gemma the old and new code so it can judge what changed."""
+    if change["type"] != "behavior_changed":
+        return ""
+    return (
+        "\nThe function's name and parameters did not change, but its code did.\n"
+        f"Old code:\n{change.get('old_code', '')}\n\nNew code:\n{change.get('new_code', '')}\n"
+        "Only answer \"outdated\" if the sentence describes behaviour the new code no longer has.\n"
     )
 
 

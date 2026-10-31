@@ -5,7 +5,7 @@
   "base": "64433b1^",
   "head": "64433b1",
   "summary": {
-    "code_changes": 2,
+    "code_changes": 3,
     "findings": 2,
     "dismissed_by_gemma": 0
   },
@@ -45,6 +45,24 @@
         "line": 63
       },
       "commit": "64433b1"
+    },
+    {
+      "id": "C3",
+      "type": "signature_changed",
+      "kind": "function",
+      "old": {
+        "name": "main",
+        "value": "main(template, no_input, checkout, verbose, replay, overwrite_if_exists, output_dir, config)",
+        "file": "cookiecutter/cli.py",
+        "line": 67
+      },
+      "new": {
+        "name": "main",
+        "value": "main(template, no_input, checkout, verbose, replay, overwrite_if_exists, output_dir, config_file, default_config)",
+        "file": "cookiecutter/cli.py",
+        "line": 71
+      },
+      "commit": "64433b1"
     }
   ],
   "findings": [
@@ -62,7 +80,7 @@
         "doc:docs/advanced_usage.rst:73"
       ],
       "verdict": "outdated",
-      "explanation": "The flag mentioned in the documentation (--config) was renamed to --config-file in the code change.",
+      "explanation": "The command line flag was renamed from --config to --config-file.",
       "suggested_fix": "From version 1.3.0 you can also specify a config file on the command line via ``--config-file``::"
     },
     {
@@ -79,7 +97,7 @@
         "doc:docs/advanced_usage.rst:75"
       ],
       "verdict": "outdated",
-      "explanation": "The CLI flag used, `--config`, was renamed to `--config-file` in the code.",
+      "explanation": "The command flag --config was renamed to --config-file in the underlying code.",
       "suggested_fix": "$ cookiecutter --config-file /home/audreyr/my-custom-config.yaml cookiecutter-pypackage"
     }
   ],
