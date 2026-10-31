@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "driftation"
+version = "0.1.0"
+description = "Find documentation made outdated by a pull request's code changes."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "The MATRIX (Arsh Aryan, Harshit Sharma)" }]
+requires-python = ">=3.11"
+dependencies = ["requests", "networkx"]
+
+[project.scripts]
+# Lets users run `driftation --base main` from any folder after `pip install`
+driftation = "driftation.__main__:main"
+
+[tool.setuptools]
+packages = ["driftation"]

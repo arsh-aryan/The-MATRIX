@@ -1,0 +1,154 @@
+{
+  "tool": "driftation",
+  "version": "0.1.0",
+  "model": "gemma4:e4b",
+  "base": null,
+  "head": null,
+  "summary": {
+    "code_changes": 4,
+    "findings": 4,
+    "dismissed_by_gemma": 0
+  },
+  "code_changes": [
+    {
+      "id": "C1",
+      "type": "value_changed",
+      "kind": "constant",
+      "old": {
+        "name": "DEFAULT_TIMEOUT",
+        "value": "30",
+        "file": "cli.py",
+        "line": 4
+      },
+      "new": {
+        "name": "DEFAULT_TIMEOUT",
+        "value": "60",
+        "file": "cli.py",
+        "line": 4
+      },
+      "commit": null
+    },
+    {
+      "id": "C2",
+      "type": "value_changed",
+      "kind": "param",
+      "old": {
+        "name": "fetch_forecast.days",
+        "value": "3",
+        "file": "cli.py",
+        "line": 8
+      },
+      "new": {
+        "name": "fetch_forecast.days",
+        "value": "7",
+        "file": "cli.py",
+        "line": 8
+      },
+      "commit": null
+    },
+    {
+      "id": "C3",
+      "type": "removed",
+      "kind": "function",
+      "old": {
+        "name": "export_csv",
+        "value": null,
+        "file": "cli.py",
+        "line": 13
+      },
+      "new": null,
+      "commit": null
+    },
+    {
+      "id": "C4",
+      "type": "renamed",
+      "kind": "flag",
+      "old": {
+        "name": "--max-retries",
+        "value": "3",
+        "file": "cli.py",
+        "line": 22
+      },
+      "new": {
+        "name": "--retries",
+        "value": "3",
+        "file": "cli.py",
+        "line": 16
+      },
+      "commit": null
+    }
+  ],
+  "findings": [
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 6,
+        "sentence": "Run `weather London --max-retries 5` to retry failed requests more often."
+      },
+      "cause": "C4",
+      "matched": "--max-retries",
+      "link": "direct",
+      "evidence": [
+        "flag:--max-retries",
+        "doc:README.md:6"
+      ],
+      "verdict": "outdated",
+      "explanation": "The flag name was changed from --max-retries to --retries in the code.",
+      "suggested_fix": "Run `weather London --retries 5` to retry failed requests more often."
+    },
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 12,
+        "sentence": "Use export_csv(forecast, path) to save results to a spreadsheet."
+      },
+      "cause": "C3",
+      "matched": "export_csv",
+      "link": "direct",
+      "evidence": [
+        "function:export_csv",
+        "doc:README.md:12"
+      ],
+      "verdict": "outdated",
+      "explanation": "The function export_csv referenced in the documentation was removed from the code.",
+      "suggested_fix": ""
+    },
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 7,
+        "sentence": "The --timeout flag defaults to 30 seconds."
+      },
+      "cause": "C1",
+      "matched": "--timeout",
+      "link": "indirect",
+      "evidence": [
+        "constant:DEFAULT_TIMEOUT",
+        "flag:--timeout",
+        "doc:README.md:7"
+      ],
+      "verdict": "outdated",
+      "explanation": "The constant DEFAULT_TIMEOUT was changed from 30 to 60, making the documentation inaccurate.",
+      "suggested_fix": "The --timeout flag defaults to 60 seconds."
+    },
+    {
+      "doc": {
+        "file": "README.md",
+        "line": 11,
+        "sentence": "Call fetch_forecast(city) to get a 3 day forecast."
+      },
+      "cause": "C2",
+      "matched": "fetch_forecast",
+      "link": "indirect",
+      "evidence": [
+        "param:fetch_forecast.days",
+        "function:fetch_forecast",
+        "doc:README.md:11"
+      ],
+      "verdict": "outdated",
+      "explanation": "The code now provides a 7-day forecast, which contradicts the 3-day limit stated in the documentation.",
+      "suggested_fix": "Call fetch_forecast(city) to get a 7 day forecast."
+    }
+  ],
+  "dismissed": []
+}

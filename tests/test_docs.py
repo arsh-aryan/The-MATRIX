@@ -8,13 +8,24 @@ def test_mentions_name_variants():
     assert mentions("The Max retries option is 3.", "max_retries") is not None
 
 
-def test_short_names_must_match_exactly():
-    assert mentions("Your id is shown.", "ID") is None
-    assert mentions("The ID is shown.", "ID") == "ID"
+def test_code_looking_names_match_exactly():
+    assert mentions("Set TIMEOUT in settings.py.", "TIMEOUT") == "TIMEOUT"
+    assert mentions("Set the timeout in settings.py.", "TIMEOUT") is None
+    assert mentions("Create an HttpClient first.", "HttpClient") == "HttpClient"
+
+
+def test_single_words_must_look_like_code():
+    # "config" is an everyday word: plain prose is not a mention, code formatting is
+    assert mentions("Edit your user config file.", "config") is None
+    assert mentions("Pass ``config`` to main().", "config") == "config"
+    assert mentions("Pass `config` to main().", "config") == "config"
+    assert mentions("Call main(config=path).", "config") == "config"
+    assert mentions("Call export(data).", "export") == "export"
+    assert mentions("Use --config to pick a file.", "--config") == "--config"
 
 
 def test_no_partial_word_match():
-    assert mentions("Set timeouts carefully.", "timeout") is None
+    assert mentions("Set `timeouts` carefully.", "timeout") is None
     assert mentions("Use --max-retries-total.", "--max-retries") is None
 
 

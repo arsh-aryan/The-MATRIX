@@ -6,6 +6,7 @@ Edges say how they relate: "defines" (function -> its params), "calls" (function
 "uses" (function or flag -> constant).
 """
 import ast
+import warnings
 
 import networkx as nx
 
@@ -29,7 +30,9 @@ def extract(source):
       links:   [(from_kind, from_name, edge, to_name)]  # to_name is resolved later
     """
     try:
-        tree = ast.parse(source)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")  # old code can trigger harmless SyntaxWarnings
+            tree = ast.parse(source)
     except (SyntaxError, ValueError):
         return {}, []
     symbols, links = {}, []
