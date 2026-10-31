@@ -6,6 +6,12 @@
 
 **Problem Statement:** Problem 5 - Automated Documentation Drift Detection
 
+## Our Deliverable
+Driftation is a command-line tool that detects documentation made outdated by
+a pull request's code changes. For each issue it reports the exact documentation
+sentence (file and line) and a precise reference to the responsible code change
+(file, line, and commit), with a verdict and suggested fix from Gemma.
+
 ## AI Models Used
 
 ### gemma4:e4b (via Ollama)
