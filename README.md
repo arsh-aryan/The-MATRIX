@@ -38,16 +38,23 @@ The report is Markdown for people (`--output`) and JSON for scripts (`--json`).
 
 ## How it works
 1. Builds a knowledge graph of the project's Python code with `ast` and `networkx`
-   (functions, classes, constants, CLI flags, parameter defaults; edges for defines, calls, uses).
+   (functions, classes, constants, CLI flags, parameter defaults; edges for defines, calls, uses),
+   plus every setting in its config files (YAML, TOML, JSON, .ini/.cfg, .env).
    The idea of turning code into a knowledge graph is inspired by Graphify.
-2. Splits documentation (`.md`, `.rst`, `.txt`) into sentences and matches code names,
-   including variants like `max_retries`, `max-retries`, `--max-retries` and "max retries".
+2. Splits documentation (`.md`, `.rst`, `.txt`, including config tables) and Python docstrings
+   into sentences and matches code names, including variants like `max_retries`,
+   `max-retries`, `--max-retries`, "max retries", and `port` for `server.port`.
    Plain single words (like `config`) only count when the doc writes them as code.
-3. Reads the pull request diff and classifies each change: renamed, removed, or value changed.
+3. Reads the pull request diff and classifies each change:
+   - **renamed**, **removed** or **value changed** (flags, constants, params, defaults, settings)
+   - **signature changed**: a function now needs an extra argument, so `create_note(title)` breaks
+   - **behaviour changed**: a function's code changed but its name did not (only with Gemma,
+     which reads the old and new code)
 4. Walks the graph up to 2 steps from each changed item to find affected sentences
    (e.g. a changed constant used as a flag's default reaches docs about that flag).
 5. Filters false alarms: sentences already edited in the PR, names still used in the code,
-   and value changes where the doc does not state the old value.
+   value changes where the doc does not state the old value, and calls that already pass
+   enough arguments.
 6. Asks gemma4:e4b, running locally via Ollama, to judge each candidate sentence.
    If Ollama is not running, results are marked "unverified" instead of crashing.
 
@@ -57,6 +64,7 @@ The report is Markdown for people (`--output`) and JSON for scripts (`--json`).
 | `driftation/diff_parser.py` | parse the unified diff |
 | `driftation/changes.py` | classify code changes |
 | `driftation/code_graph.py` | build and walk the knowledge graph |
+| `driftation/config_files.py` | read settings from config files |
 | `driftation/docs.py` | split docs and match names |
 | `driftation/drift.py` | find and filter affected sentences |
 | `driftation/gemma.py` | Gemma verdicts via Ollama |
@@ -71,6 +79,7 @@ The report is Markdown for people (`--output`) and JSON for scripts (`--json`).
 | Save reports | `driftation --base main --output report.md --json report.json` |
 | Check any two commits | `driftation --base abc123 --head def456` |
 | Only a saved diff file | `driftation --diff pr.diff --repo path/to/project` |
+| Two folders, before and after (no git) | `driftation --old before/ --repo after/` |
 
 `python -m driftation` works the same as `driftation`.
 
@@ -84,16 +93,21 @@ To use it in another repository, copy that file and change the install step to
 ## Examples
 - [`examples/real-cookiecutter`](examples/real-cookiecutter): a real drift case from cookiecutter's
   history, with the maintainer's later fix as the answer key.
-- [`examples/basic`](examples/basic): a hand-made demo with all four kinds of drift
-  (renamed flag, changed default, changed parameter, removed function).
+- [`examples/basic`](examples/basic): a hand-made demo with renamed flag, changed default,
+  changed parameter and removed function.
+- [`examples/config-and-api`](examples/config-and-api): a hand-made demo with a YAML config
+  table, a renamed config key, a new required argument, a behaviour change and a stale docstring.
 
 Each has the input, and the real `report.md` and `report.json` produced with gemma4:e4b.
 
 ## Limitations
-- Analyzes Python code only; CLI flags must be defined with argparse or click.
-- Settings in config files (YAML, TOML) and docstrings are not checked yet.
+- Analyzes Python code only (config files work for any project); CLI flags must be defined
+  with argparse or click.
+- Behaviour changes are only checked with Gemma, and only for docs that name the function.
 - Plain single-word names in prose (e.g. "the config file") are skipped on purpose to avoid
   false alarms, so drift written only that way can be missed.
+- With a saved diff (`--diff`), config files are read line by line, so nested keys lose their
+  section; use git (`--base`) or `--old` for full accuracy.
 - Gemma can be wrong; its verdict is advice, and every finding shows its evidence.
 
 ## Development

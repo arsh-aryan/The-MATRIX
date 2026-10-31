@@ -1,4 +1,5 @@
 """Step 0: get the diff and read project files, either from git or from a folder."""
+import difflib
 import os
 import subprocess
 
@@ -64,6 +65,24 @@ def merge_base(repo, base, head):
 def git_diff(repo, base, head):
     """The PR diff, same as `git diff base...head`."""
     return run_git(repo, "diff", f"{base}...{head}")
+
+
+def folder_diff(old_root, new_root):
+    """A unified diff between two folders (like `git diff`), for --old without git."""
+    old, new = Folder(old_root), Folder(new_root)
+    chunks = []
+    for path in sorted(set(old.list_files()) | set(new.list_files())):
+        before, after = old.read(path), new.read(path)
+        if before == after:
+            continue
+        lines = difflib.unified_diff(
+            (before or "").splitlines(), (after or "").splitlines(),
+            f"a/{path}" if before is not None else "/dev/null",
+            f"b/{path}" if after is not None else "/dev/null",
+            lineterm="",
+        )
+        chunks.append(f"diff --git a/{path} b/{path}\n" + "\n".join(lines))
+    return "\n".join(chunks) + "\n"
 
 
 def commit_for(repo, base, head, path, new_line=None):

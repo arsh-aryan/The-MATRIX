@@ -8,7 +8,7 @@ from .diff_parser import parse_diff_with_lines
 from .docs import load_sentences
 from .drift import find_drift
 from .gemma import review
-from .git_input import Folder, GitTree, commit_for, git_diff, merge_base
+from .git_input import Folder, GitTree, commit_for, folder_diff, git_diff, merge_base
 from .json_report import make_json
 from .report import make_report
 
@@ -20,6 +20,7 @@ def main(argv=None):
     parser.add_argument("--base", default="main", help="branch or commit the PR is based on (default: main)")
     parser.add_argument("--head", default="HEAD", help="branch or commit with the changes (default: HEAD)")
     parser.add_argument("--diff", help="read a saved diff file instead of running git")
+    parser.add_argument("--old", help="folder with the project before the change (--repo is after)")
     parser.add_argument("--repo", default=".", help="project folder (default: current folder)")
     parser.add_argument("--no-llm", action="store_true", help="skip the Gemma review")
     parser.add_argument("--model", default="gemma4:e4b", help="Ollama model (default: gemma4:e4b)")
@@ -28,7 +29,11 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     # Step 0: input
-    if args.diff:
+    if args.old:
+        # Two folders: the project before (--old) and after (--repo) the change
+        diff_text = folder_diff(args.old, args.repo)
+        old_tree, new_tree, git_repo, base = Folder(args.old), Folder(args.repo), None, None
+    elif args.diff:
         with open(args.diff, encoding="utf-8") as f:
             diff_text = f.read()
         old_tree, new_tree, git_repo, base = None, Folder(args.repo), None, None
@@ -39,7 +44,8 @@ def main(argv=None):
 
     # Step 3: what changed in the code
     diff = parse_diff_with_lines(diff_text)
-    changes = find_changes(diff, old_tree, new_tree)
+    # Behaviour changes need Gemma to read the code, so they are skipped with --no-llm
+    changes = find_changes(diff, old_tree, new_tree, behavior=not args.no_llm)
     for change in changes:
         line = _changed_line(diff, change)
         change["commit"] = commit_for(git_repo, base, args.head, change["file"], line)
