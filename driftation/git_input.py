@@ -57,6 +57,18 @@ class Folder:
             return None
 
 
+def is_git_repo(repo):
+    """True if `repo` is inside a git repository."""
+    return subprocess.run(["git", "-C", repo, "rev-parse", "--git-dir"], capture_output=True).returncode == 0
+
+
+def ref_exists(repo, ref):
+    """True if `ref` (a branch, tag or commit like abc123^) exists in the repository."""
+    result = subprocess.run(["git", "-C", repo, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}"],
+                            capture_output=True)
+    return result.returncode == 0
+
+
 def merge_base(repo, base, head):
     """The commit where the PR branch started (what "base...head" compares against)."""
     return run_git(repo, "merge-base", base, head).strip()
