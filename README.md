@@ -3,6 +3,29 @@
 Driftation finds documentation that became outdated because of code changes
 in a pull request, and points to the exact code change responsible.
 
+On a real cookiecutter commit that renamed `--config` to `--config-file`, it flagged exactly the
+2 doc lines a maintainer fixed 3 hours later, and Gemma's suggested fixes matched the maintainer's
+word for word ([`examples/real-cookiecutter`](examples/real-cookiecutter)).
+
+## Quick start
+You need Python 3.11+ and git. Gemma is optional but recommended.
+
+1. Install Driftation:
+   ```
+   pip install git+https://github.com/arsh-aryan/The-MATRIX.git
+   ```
+2. (Optional) Install [Ollama](https://ollama.com) and download Gemma (about 9.5 GB):
+   ```
+   ollama pull gemma4:e4b
+   ```
+3. Go to your own Python project, switch to your PR branch, and run:
+   ```
+   driftation --base main
+   ```
+4. Read the report, fix the docs it points to, and run it again.
+
+No Ollama? Add `--no-llm` to get the findings without Gemma's verdicts.
+
 ## What it reports
 For every potentially outdated sentence, Driftation shows:
 - **Where the docs are wrong:** documentation file, line number, and the exact sentence
@@ -11,11 +34,15 @@ For every potentially outdated sentence, Driftation shows:
 - **Evidence:** the knowledge graph path linking the sentence to the changed code
 - **Verdict:** outdated, still correct, or uncertain, judged by Gemma, with a suggested fix
 
+The report is Markdown for people (`--output`) and JSON for scripts (`--json`).
+
 ## How it works
 1. Builds a knowledge graph of the project's Python code with `ast` and `networkx`
    (functions, classes, constants, CLI flags, parameter defaults; edges for defines, calls, uses).
+   The idea of turning code into a knowledge graph is inspired by Graphify.
 2. Splits documentation (`.md`, `.rst`, `.txt`) into sentences and matches code names,
    including variants like `max_retries`, `max-retries`, `--max-retries` and "max retries".
+   Plain single words (like `config`) only count when the doc writes them as code.
 3. Reads the pull request diff and classifies each change: renamed, removed, or value changed.
 4. Walks the graph up to 2 steps from each changed item to find affected sentences
    (e.g. a changed constant used as a flag's default reaches docs about that flag).
@@ -33,45 +60,47 @@ For every potentially outdated sentence, Driftation shows:
 | `driftation/docs.py` | split docs and match names |
 | `driftation/drift.py` | find and filter affected sentences |
 | `driftation/gemma.py` | Gemma verdicts via Ollama |
-| `driftation/report.py` | Markdown report |
-
-## Requirements
-- Python 3.11+
-- Ollama with gemma4:e4b (`ollama pull gemma4:e4b`); use `--model gemma4:e2b` on low-memory laptops
-
-## Installation
-```
-pip install -r requirements.txt
-```
+| `driftation/report.py` / `json_report.py` | Markdown and JSON reports |
 
 ## Usage
-Run inside the project's git repository, on the PR branch:
-```
-python -m driftation --base main
-```
+| Situation | Command |
+|---|---|
+| Check your PR branch against `main` | `driftation --base main` |
+| Fast check without Gemma | `driftation --base main --no-llm` |
+| Low-memory laptop | `driftation --base main --model gemma4:e2b` |
+| Save reports | `driftation --base main --output report.md --json report.json` |
+| Check any two commits | `driftation --base abc123 --head def456` |
+| Only a saved diff file | `driftation --diff pr.diff --repo path/to/project` |
 
-Options:
-- `--base REF` / `--head REF`: compare any two commits (default `main` and `HEAD`)
-- `--diff FILE`: use a saved diff file instead of git (`--repo` is the project folder)
-- `--repo PATH`: project folder (default: current folder)
-- `--no-llm`: skip Gemma
-- `--model NAME`: Ollama model (default `gemma4:e4b`)
-- `--output FILE`: write the Markdown report to a file
+`python -m driftation` works the same as `driftation`.
 
 ## GitHub integration
 `.github/workflows/driftation.yml` runs Driftation on every pull request in this repository
-and shows the report on the workflow run's Summary page. GitHub's servers have no Ollama,
-so this runs with `--no-llm`; run it locally to get Gemma's verdicts.
+and shows the report on the workflow run's Summary page. It never posts comments.
+GitHub's servers have no Ollama, so this runs with `--no-llm`; run it locally to get Gemma's verdicts.
+To use it in another repository, copy that file and change the install step to
+`pip install git+https://github.com/arsh-aryan/The-MATRIX.git`.
 
-## Example
-[`examples/basic`](examples/basic) has a sample project, a PR diff, and the real report
-Driftation produced with gemma4:e4b (4 of 4 outdated sentences found):
-```
-python -m driftation --repo examples/basic/project --diff examples/basic/pr.diff
-```
+## Examples
+- [`examples/real-cookiecutter`](examples/real-cookiecutter): a real drift case from cookiecutter's
+  history, with the maintainer's later fix as the answer key.
+- [`examples/basic`](examples/basic): a hand-made demo with all four kinds of drift
+  (renamed flag, changed default, changed parameter, removed function).
 
-## Running tests
+Each has the input, and the real `report.md` and `report.json` produced with gemma4:e4b.
+
+## Limitations
+- Analyzes Python code only; CLI flags must be defined with argparse or click.
+- Settings in config files (YAML, TOML) and docstrings are not checked yet.
+- Plain single-word names in prose (e.g. "the config file") are skipped on purpose to avoid
+  false alarms, so drift written only that way can be missed.
+- Gemma can be wrong; its verdict is advice, and every finding shows its evidence.
+
+## Development
 ```
+git clone https://github.com/arsh-aryan/The-MATRIX.git
+cd The-MATRIX
+pip install -r requirements.txt
 python -m pytest
 ```
 Tests never need Ollama: the Gemma call is mocked.

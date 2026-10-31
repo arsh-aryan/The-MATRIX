@@ -49,13 +49,22 @@ def name_variants(name):
 def mentions(sentence, name):
     """Return the variant of `name` found in `sentence`, or None.
 
-    Multi-word and long names match in any case ("Max retries"); short single words
-    like "id" must match exactly, to avoid false alarms.
+    Names with several parts ("max_retries", "--max-retries", "max retries") match anywhere,
+    in any case. Names that look like code on their own (TIMEOUT, HttpClient) match exactly.
+    A plain single word like "config" or "days" is also an everyday English word, so it
+    only counts when the doc writes it as code: `config`, ``config``, config(...) or
+    config=... This keeps false alarms down.
     """
     for variant in sorted(name_variants(name), key=len, reverse=True):
-        loose = " " in variant or "_" in variant or "-" in variant or len(variant) >= 4
-        flags = re.IGNORECASE if loose else 0
-        if re.search(r"(?<![\w-])" + re.escape(variant) + r"(?![\w-])", sentence, flags):
+        word = re.escape(variant)
+        plain = r"(?<![\w-])" + word + r"(?![\w-])"
+        if re.search(r"[\s_\-]", variant):
+            pattern, flags = plain, re.IGNORECASE
+        elif any(c.isupper() for c in variant[1:]):
+            pattern, flags = plain, 0
+        else:
+            pattern, flags = r"`{1,2}" + word + r"`{1,2}|(?<![\w-])" + word + r"(?=[(=])", 0
+        if re.search(pattern, sentence, flags):
             return variant
     return None
 

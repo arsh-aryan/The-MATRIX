@@ -1,12 +1,14 @@
-# Example: weather-cli
+# Example: weather-cli (hand-made demo)
 
-A tiny sample project and a pull request that changes its code without updating its docs.
+A small sample project we wrote to show every kind of drift in one place: a pull request that
+changes its code without updating its docs. For a real-world case, see
+[`../real-cookiecutter`](../real-cookiecutter).
 
 | File | What it is |
 |---|---|
 | `project/` | The project **after** the PR: `cli.py` (code) and `README.md` (docs, not updated) |
 | `pr.diff` | The PR's diff (`git diff main...feature`) |
-| `report.md` | The **real** output of Driftation with gemma4:e4b running locally in Ollama |
+| `report.md` / `report.json` | The **real** output of Driftation with gemma4:e4b running locally in Ollama |
 
 ## What the PR changed
 1. Renamed the flag `--max-retries` to `--retries`
@@ -26,7 +28,7 @@ were not reported.
 ## Run it yourself
 From the repository root, with Ollama running and `gemma4:e4b` pulled:
 ```
-python -m driftation --repo examples/basic/project --diff examples/basic/pr.diff --output report.md
+driftation --repo examples/basic/project --diff examples/basic/pr.diff --output report.md --json report.json
 ```
 Add `--no-llm` to skip Gemma. Commit hashes show "n/a" here because a saved diff has no git
 history; when run inside a git repo (`--base main`), each change shows its commit.

@@ -9,6 +9,7 @@ from .docs import load_sentences
 from .drift import find_drift
 from .gemma import review
 from .git_input import Folder, GitTree, commit_for, git_diff, merge_base
+from .json_report import make_json
 from .report import make_report
 
 
@@ -23,6 +24,7 @@ def main(argv=None):
     parser.add_argument("--no-llm", action="store_true", help="skip the Gemma review")
     parser.add_argument("--model", default="gemma4:e4b", help="Ollama model (default: gemma4:e4b)")
     parser.add_argument("--output", help="write the Markdown report to this file")
+    parser.add_argument("--json", help="also write a JSON report to this file")
     args = parser.parse_args(argv)
 
     # Step 0: input
@@ -63,6 +65,15 @@ def main(argv=None):
         _log(f"Report written to {args.output}")
     else:
         print(text)
+    if args.json:
+        meta = {
+            "model": None if args.no_llm else args.model,
+            "base": None if args.diff else args.base,
+            "head": None if args.diff else args.head,
+        }
+        with open(args.json, "w", encoding="utf-8") as f:
+            f.write(make_json(findings, changes, meta) + "\n")
+        _log(f"JSON report written to {args.json}")
     return 0
 
 
