@@ -28,5 +28,5 @@ writes a short explanation linking the sentence to the responsible change.
 **Fallback:** gemma4:e2b on laptops with limited memory.
 
 ## AI Coding Assistants
-- Claude Opus 5.5 (Anthropic): helped write and debug the code.
+- Claude Opus 5.5 (Anthropic): Helped write and debug the code.
   Not used inside the product.
